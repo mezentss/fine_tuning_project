@@ -1,8 +1,0 @@
-{
-  "model_name": "resnet18",
-  "num_classes": 3,
-  "best_accuracy": 0.8,
-  "epochs_trained": 10,
-  "train_samples": 72,
-  "val_samples": 18
-}
