@@ -16,24 +16,39 @@ class BirdClassifier:
         Args:
             model_path: путь к ONNX модели
         """
-        self.model_path = model_path
+        # Построим абсолютный путь к модели относительно корня проекта
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(app_dir)
+        default_model_path = os.path.join(project_root, "experiments", "models", "resnet18.onnx")
+        # Если переданный путь не существует, используем дефолтный абсолютный
+        resolved_model_path = model_path
+        if not os.path.isabs(resolved_model_path):
+            resolved_model_path = os.path.normpath(os.path.join(app_dir, model_path))
+        if not os.path.exists(resolved_model_path):
+            resolved_model_path = default_model_path
+
+        self.model_path = resolved_model_path
         self.class_names = ["Совы", "Вороны", "Орлы"]
         self.class_descriptions = {
-            "Совы": "Ночные хищные птицы с круглыми головами и большими глазами",
-            "Вороны": "Крупные черные птицы из семейства врановых, известные высоким интеллектом",
-            "Орлы": "Крупные хищные птицы с мощными когтями и острым зрением"
+            "Совы": "Ночные хищные птицы с характерным лицевым диском и тихим полётом.",
+            "Вороны": "Умные птицы семейства врановых, часто чёрного окраса.",
+            "Орлы": "Крупные дневные хищники с мощным клювом и острым зрением."
         }
         
         # Загружаем ONNX модель
         try:
-            self.ort_session = ort.InferenceSession(model_path)
-            print(f"Модель успешно загружена: {model_path}")
+            self.ort_session = ort.InferenceSession(self.model_path)
+            # Имя входного тензора читаем из самой модели
+            self.input_name = self.ort_session.get_inputs()[0].name
+            print(f"Модель успешно загружена: {self.model_path}")
         except Exception as e:
             print(f"Ошибка при загрузке модели: {e}")
             # Пробуем альтернативный путь
             alt_path = "models/resnet18.onnx"
             try:
-                self.ort_session = ort.InferenceSession(alt_path)
+                alt_abs = os.path.join(project_root, alt_path)
+                self.ort_session = ort.InferenceSession(alt_abs if os.path.exists(alt_abs) else alt_path)
+                self.input_name = self.ort_session.get_inputs()[0].name
                 print(f"Модель загружена по альтернативному пути: {alt_path}")
             except Exception as e2:
                 print(f"Не удалось загрузить модель: {e2}")
@@ -83,7 +98,7 @@ class BirdClassifier:
             input_data = self.preprocess(image)
             
             # Инференс
-            outputs = self.ort_session.run(None, {"input": input_data})
+            outputs = self.ort_session.run(None, {self.input_name: input_data})
             predictions = outputs[0][0]  # Убираем batch dimension
             
             # Softmax для получения вероятностей
@@ -177,8 +192,9 @@ if __name__ == "__main__":
     print("Запуск Gradio приложения...")
     print("Приложение будет доступно по адресу: http://localhost:7860")
     interface.launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        share=False,
-        show_error=True
+        server_name="127.0.0.1",
+        server_port=None,  # авто-свободный порт
+        share=True,
+        show_error=True,
+        inbrowser=True
     )
