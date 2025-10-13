@@ -47,7 +47,7 @@ pip install -r requirements.txt
 mkdir -p data/processed/train data/processed/val
 
 # Разделение данных на train/val (80/20)
-python -c "
+python -c 
 import os
 import shutil
 import random
@@ -78,7 +78,7 @@ for class_name in ['class1', 'class2', 'class3']:
             shutil.copy2(img, processed_dir / 'val' / class_name / img.name)
         
         print(f'{class_name}: {len(train_images)} train, {len(val_images)} val')
-"
+
 ```
 
 ## Описание данных
@@ -88,7 +88,6 @@ for class_name in ['class1', 'class2', 'class3']:
 - **class2**: Вороны (30 изображений) 
 - **class3**: Орлы (30 изображений)
 
-Данные разделены на обучающую (80%) и валидационную (20%) выборки. Подробное описание см. в [data/README.md](data/README.md).
 
 ## Быстрый старт
 
@@ -181,14 +180,8 @@ python app_gradio.py
 - **Фреймворк**: PyTorch + timm
 - **Модели**: ResNet18, EfficientNet-B0
 - **Аугментации**: RandomHorizontalFlip, RandomRotation, Normalization
+- **Ауг ментации**: RandomHorizontalFlip, RandomRotation, Normalization
 - **Оптимизатор**: Adam
 - **Loss**: CrossEntropyLoss
 - **Стратегия обучения**: Transfer learning с замораживанием backbone на первых 5 эпохах
 
-## Требования
-
-- Python 3.8+
-- PyTorch 1.12+
-- CUDA (опционально, для ускорения обучения)
-- 4GB RAM (минимум)
-- 2GB свободного места на диске
